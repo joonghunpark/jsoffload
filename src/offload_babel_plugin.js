@@ -16,8 +16,7 @@ exports.default = function(_ref) {
               console.log(path.scope);
               console.log("path.parent: ");
               console.log(path.parent);
-              if (path.scope.block.type == "Program" &&
-                (path.parent.type == "VariableDeclarator") || path.parent.type == "AssignmentExpression") {
+              if (path.scope.block.type == "Program" && path.parent.type == "VariableDeclarator") {
                 offload_config_json.global_vars.push(path.node.name);
                 fs.writeFileSync("offload_config.json", JSON.stringify(offload_config_json), (err) =>
                     { console.log("error occured.")}
