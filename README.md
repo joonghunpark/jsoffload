@@ -2,11 +2,13 @@
 
 ## Usage
 
-Babel transformation command
+Step 1.
+Run Babel transformation command
 ```sh
 node_modules/.bin/babel fixtures/input_file.js --out-dir lib
 ```
 
+This command takes input js file and transform its js function's form to use lib/offload_lib.js's |remoteExecution|.
 ```sh
 input file : fixtures/input_file.js
 output file (babel transformed result) : lib/input_file.js
@@ -71,6 +73,21 @@ function offloaded(a, b, c) {
 
 square(3);
 ```
+
+Step 2. Run src/node_server.js with node
+
+```sh
+node src/node_server.js
+```
+
+Step 3. Run chromium with the runtime option as below.
+This is for disable CORS for now for test purpose.
+"fixtures/offload_test.html" files includes "lib/offload_lib.js" in top of it.
+```sh
+out/Release/chrome --disable-web-security --user-data-dir='/tmp' fixtures/offload_test.html
+```
+
+Step 4. Open inspector console and see the console.log to check the behavior.
 
 ## Overall
 
