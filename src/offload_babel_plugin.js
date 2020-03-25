@@ -2,7 +2,7 @@ exports.__esModule = true;
 
 var fs = require('fs');
 
-var offload_config_json = { global_vars : [], };
+var offload_config_json = { global_vars : [], offloadable_funcs : [] };
 
 exports.default = function(_ref) {
     var t = _ref.types;
@@ -25,6 +25,13 @@ exports.default = function(_ref) {
             },
             FunctionDeclaration(path) {
                 let tclength;
+                let is_offloadable = true;
+                let old_id = path.node.id;
+                path.node.body.body.forEach(elem => {
+                    console.log("each elem is: " + JSON.stringify(elem));
+                    if (elem.type == "ExpressionStatement" && elem.expression.type == "CallExpression")
+                        is_offloadable = false;
+                });
                 if (path.node.leadingComments) {
                     tclength = path.node.leadingComments.length;
                     console.log(path.node.leadingComments[tclength - 1].value);
@@ -36,8 +43,12 @@ exports.default = function(_ref) {
                                     [generated_id, t.ArrayExpression(path.node.params)]))],
                                         path.node.body.directives)));
                         path.node.id = generated_id;
+                        is_offloadable = true;
                     }
                 }
+
+                if (is_offloadable)
+                    offload_config_json.offloadable_funcs.push(old_id.name);
             },
             CallExpression(path) {
                 console.log("callee: ");
