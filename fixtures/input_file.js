@@ -17,12 +17,13 @@ function test(n) {
 }
 // test comments 4
 // <<offload>>
-function offloaded(a, b, c) {
+function offloaded(arg1, arg2, arg3) {
+  console.log(a);
   var local_1 = "1"
   local_1;
   console.log(local_1);
-  var local_2;
-  var local_3;
+  b;
+  c;
   console.log("offloaded");
 }
 
@@ -31,6 +32,13 @@ square(3);
 // <<offload>>
 function offloaded_add(a, b) {
 	return a + b;
+}
+
+function outer(arg1, arg2) {
+	console.log(arg1);
+	function inner() {
+		console.log(arg2);
+	}
 }
 
 var add_result = offloaded_add(100, 1000);

@@ -2,7 +2,7 @@ exports.__esModule = true;
 
 var fs = require('fs');
 
-var offload_config_json = { global_vars : [], offloadable_funcs : [] };
+var offload_config_json = { functions : [] };
 
 exports.default = function(_ref) {
     var t = _ref.types;
@@ -16,22 +16,23 @@ exports.default = function(_ref) {
               console.log(path.scope);
               console.log("path.parent: ");
               console.log(path.parent);
-              if (path.scope.block.type == "Program" && path.parent.type == "VariableDeclarator") {
-                offload_config_json.global_vars.push(path.node.name);
-                fs.writeFileSync("offload_config.json", JSON.stringify(offload_config_json), (err) =>
-                    { console.log("error occured.")}
-                );
-              }
             },
             FunctionDeclaration(path) {
                 let tclength;
                 let is_offloadable = true;
                 let old_id = path.node.id;
-                path.node.body.body.forEach(elem => {
-                    console.log("each elem is: " + JSON.stringify(elem));
-                    if (elem.type == "ExpressionStatement" && elem.expression.type == "CallExpression")
-                        is_offloadable = false;
+                console.log("FunctionDeclaration path.node.name");
+                console.log(path.node.name);
+                console.log("FunctionDeclaration path.scope");
+                console.log(path.scope);
+                path.traverse({
+                    ExpressionStatement(innerPath) {
+                        if (innerPath.node.expression.type == "CallExpression")
+                            is_offloadable = false;
+                    }
                 });
+                path.node.body.body.forEach(elem =>
+                    console.log("each elem is: " + JSON.stringify(elem)));
                 if (path.node.leadingComments) {
                     tclength = path.node.leadingComments.length;
                     console.log(path.node.leadingComments[tclength - 1].value);
@@ -47,8 +48,24 @@ exports.default = function(_ref) {
                     }
                 }
 
-                if (is_offloadable)
-                    offload_config_json.offloadable_funcs.push(old_id.name);
+                if (path.scope.block.type == "Program")
+                    is_offloadable = true;
+
+                if (is_offloadable) {
+                    let func_json = { id: "", globals: [] }
+                    func_json.id = old_id.name;
+                    var global_path = path.findParent((path) => (path.scope.block.type == "Program"));
+                    console.log("global_path: " + global_path);
+                    for (key in global_path.scope.bindings) {
+                        func_json.globals.push(key);
+                    }
+                    console.log(func_json);
+                    offload_config_json.functions.push(func_json);
+                    console.log("offload_config_json.functions: " + JSON.stringify(offload_config_json.functions));
+                    fs.writeFileSync("offload_config.json", JSON.stringify(offload_config_json), (err) =>
+                        { console.log("error occured.")}
+                    );
+                }
             },
             CallExpression(path) {
                 console.log("callee: ");
